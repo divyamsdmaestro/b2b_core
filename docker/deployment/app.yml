@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  iiht_b2b:
+    container_name: iiht_b2b
+    build:
+      context: ../../
+      dockerfile: ./docker/deployment/dockerfiles/Dockerfile-app
+    volumes:
+      - ../../:/app:z
+    env_file:
+      - ../../.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - supervisor
+    command: bash -c "python manage.py init_app && gunicorn config.wsgi -b 0.0.0.0:8000 --chdir=/app --reload --timeout 60 --workers 4 --threads 32 --max-requests 1000 --max-requests-jitter 100"
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  supervisor:
+    build:
+      context: ../../
+      dockerfile: ./docker/deployment/dockerfiles/Dockerfile-app
+    volumes:
+      - ../../:/app:z
+    env_file:
+      - ../../.env
+    ports:
+      - "5555:5555"
+      - "9001:9001"
+    depends_on:
+      - redis
+    command: /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+
+networks:
+  default:
+    name: iiht_b2b_backend
+    external: true

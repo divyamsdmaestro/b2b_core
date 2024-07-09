@@ -1,0 +1,13 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Deployment-Docker-IIHT-B2B-Core') {
+            steps {
+                    sshPublisher(publishers: [sshPublisherDesc(configName: 'IIHT-B2B-STAGING', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''cd Techademy-B2B-Core-BE
+                    git pull origin staging
+                    sudo docker-compose -f docker/deployment/app.yml stop
+                    sudo docker-compose -f docker/deployment/app.yml up -d''', execTimeout: 12000000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true)])            }
+        }
+    }
+}
